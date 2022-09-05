@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport"
+        content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, initial-scale=1.0, user-scalable=no">
+    <title>康复训练提示</title>
+    <link rel="icon" href="../css/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="./frozen.css">
+    <script src="http://pv.sohu.com/cityjson?ie=utf-8"></script>
+</head>
+
+<body>
+
+
+    <div id="app">
+
+        <div class="ui-form ui-border-t">
+
+            <form>
+                <label class="ui-form-item ui-border-b" style="display: flex;justify-content: space-between;">
+                    <p>数值可修改</p>
+                    <!-- <p class="ui-txt-warning" id="user"></p> -->
+                </label> <br>
+                <label for="liftTime" class="ui-form-item ui-border-b">
+                    抬起时间(S)
+                    <input type="number" id="liftTime" value="5" min="1" max="10">
+                </label> <br>
+                <label for="restTime" class="ui-form-item ui-border-b">
+                    休息时间(S)
+                    <input type="number" id="restTime" value="3" min="1" max="10">
+                </label> <br>
+                <label for="movements" class="ui-form-item ui-border-b">
+                    设置抬腿次数
+                    <input type="number" id="movements" value="5" min="5" max="100">
+                </label> <br>
+                <label class="ui-form-item ui-border-b">
+                    已经做了组 <b id="movements_tip">0</b> 动作
+                </label>
+
+                <div class="ui-btn-wrap" style="display: flex;justify-content:flex-start">
+                    <button id="startBtn" class="ui-btn ui-btn-primary">开始</button>
+                    <button id="endBtn" class="ui-btn ui-btn-danger" disabled style="margin-left: 4em;">结束</button>
+                </div>
+            </form>
+
+
+        </div>
+
+
+    </div>
+    <audio id="liftBgm" src="lift.m4a"></audio>
+    <audio id="restBgm" src="rest.m4a"></audio>
+    <audio id="endBgm" src="end.mp3"></audio>
+
+    <script>
+        let flag = false
+        let movements_times = 0
+        const T = true,
+            F = false
+        startBtn.onclick = async function () {
+            this.disabled = T
+            endBtn.disabled = F
+            flag = T
+            movements_tip.innerText = 0
+            run()
+            promptBox('开始')
+        }
+        endBtn.onclick = async function () {
+            init()
+        }
+
+        function init() {
+            endBtn.disabled = T
+            startBtn.disabled = F
+            flag = F
+            endBgm.play()
+            promptBox('结束')
+            movements_times = 0
+        }
+
+        async function run() {
+            endBgm.play()
+            await sleep()
+            restBgm.play()
+            await sleep(parseInt(restTime.value))
+            while (1) {
+                if (flag == F) {
+                    break
+                }
+                if (movements_times >= parseInt(movements.value)) {
+                    init()
+                    break
+                }
+                liftBgm.play()
+                await sleep(parseInt(liftTime.value))
+                if (flag == F) break
+                restBgm.play()
+                movements_tip.innerText = ++movements_times
+                await sleep(parseInt(restTime.value))
+            }
+        }
+
+        function sleep(time = 1) {
+            return new Promise((resolve, reject) => setTimeout(() => resolve(), time * 1000))
+        }
+
+
+        async function promptBox(str) {
+            let dom = createDom('div', {
+                position: 'fixed',
+                'z-index': 9999,
+                left: '50%',
+                top: '0%',
+                border: '1px solid #EBEEF5',
+                padding: '15px 15px 15px 20px',
+                background: '#f0f9eb',
+                color: '#67C23A',
+                opacity: 0,
+                transition: 'all 1s'
+            }, {
+                innerHTML: str
+            })
+            await sleep(0.05)
+            dom.style.top = '10%';
+            dom.style.opacity = 1;
+            await sleep(2)
+            dom.remove()
+        }
+
+
+        function createDom(tagName, styleObj = {}, attributeObj = {}, parentDom = document.body) {
+            let _dom = document.createElement(tagName)
+            for (let key in styleObj) _dom.style[key] = styleObj[key]
+            for (let key in attributeObj) _dom[key] = attributeObj[key]
+            parentDom.appendChild(_dom)
+            return _dom
+        }
+
+
+
+
+        let baseUrl = document.domain == '' ? 'http://47.99.48.100:3000' : `http://${document.domain}:3000`
+
+        fetch(`${baseUrl}/conloseMessage?ip=${returnCitySN["cip"]}`)
+
+        function getFullDate() {
+            let date = new Date()
+            return `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+        }
+    </script>
+
+
+    <script>
+        // document.write('服务器已到期,请续费...')
+    </script>
+</body>
+
+</html>
